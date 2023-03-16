@@ -2,12 +2,18 @@
 
 import os, pprint
 
-def main():
-    files = [] # corpus sylesia file list
-    for root, _, files in os.walk('data'):
-        files.append(os.path.join(root))
-    files.pop() # remove hanging dir name
-    pprint.pprint(files)
+def load(datapath: str) -> list[str]:
+    '''
+    Retuns a list of all filename included in corpus sylesia
+    '''
+    return [datapath + f for f in os.listdir(datapath)]
 
+    
+def main():
+    files = load('data/')
+    print(files)
+
+
+    
 if __name__ == '__main__':
     main()
