@@ -40,6 +40,19 @@ class GolombRice():
         pass
 
 
+    def q(self, n: int, m: float) -> int:
+        '''
+        Calculates quoficient and returns it as unary
+        q = n / m, rounded to the floor
+        '''
+        q = math.floor( n/m )
+        value = ''
+        for i in range(q):
+            value += '1'
+        value += '0'
+        return int(value)
+
+    
     def m(self) -> float:
         '''
         m is a formula that will be rounded to the nearest base 2 exponential value
