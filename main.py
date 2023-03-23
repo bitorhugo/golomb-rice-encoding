@@ -20,9 +20,13 @@ def main():
     files = load('data/', debug=True)
     images = files['pic']
     img = images.pop()
-
-    gr = GolombRice(img, debug=False)
+    
+    gr = GolombRice(img, debug=True)
+    # TODO: refactor using bits and not bytes
     # print(f'm: {gr.m()}')
     print (f'q: {gr.q(8, 2)}')
+
+
+    
 if __name__ == '__main__':
     main()

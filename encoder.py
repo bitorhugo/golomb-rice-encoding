@@ -1,23 +1,25 @@
 import math
+
 class GolombRice():
-    
 
     def __init__(self, file: str, debug: bool=False) -> None:
         '''
         '''
-        self.byte_seq = self.__byte_seq(file, debug)
+        self.byte_seq, self.bits_seq = self.__byte_seq(file, debug)
 
-
-    def __byte_seq(self, file: str, debug: bool=False) -> list[int]:
+        
+    def __byte_seq(self, file: str, debug: bool=False) -> tuple[list[int], list[int]]:
         seq = []
+        seq_bits = []
         with open(file, 'rb') as f:
             b = f.read(1)
             i = 0
             while(b):
                 byte = ord(b)
                 seq.append(byte)
+                bits = bin(byte)[2:].rjust(8, '0') # rjust will pad 0's to the left
+                seq_bits.append(bits)
                 if debug:
-                    bits = bin(byte)[2:].rjust(8, '0') # rjust will pad 0's to the left
                     print(f'byte: {byte}')
                     print(f'bits: {bits}')
                     print('-------------')
@@ -25,7 +27,7 @@ class GolombRice():
                     if i == 200:
                         break
                 b = f.read(1)
-        return seq
+        return (seq, seq_bits)
             
 
     def encode(self):
@@ -47,7 +49,7 @@ class GolombRice():
         '''
         q = math.floor( n/m )
         value = ''
-        for i in range(q):
+        for _ in range(q):
             value += '1'
         value += '0'
         return int(value)
