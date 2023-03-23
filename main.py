@@ -30,7 +30,7 @@ def main():
             print(f'byte: {b}')
             print(f'from_int: {int.from_bytes(b, "big")}')
             b = f.read(1)
-            if i == 50:
+            if i == 20:
                 break
             i += 1
 
