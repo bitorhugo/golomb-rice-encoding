@@ -11,7 +11,6 @@ def load(datapath: str, debug=False) -> dict[str, list[str]]:
     dirs = os.listdir(datapath)
     for dir in dirs:
         files[dir] = ['data/' + dir + "/" + f for f in os.listdir(datapath + dir)]
-
     if debug:
         pprint.pprint(files)
     return files
@@ -22,7 +21,8 @@ def main():
     images = files['pic']
     img = images.pop()
 
-    gr = GolombRice(img, debug=True)
-    print (f'zero_prob: {gr.zero_prob()}')
+    gr = GolombRice(img, debug=False)
+    # print(f'm: {gr.m()}')
+    print (f'q: {gr.q(8, 2)}')
 if __name__ == '__main__':
     main()
