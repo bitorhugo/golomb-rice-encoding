@@ -2,13 +2,16 @@ import math, bitstring, csv, time
 
 class GolombRice():
 
+    
     __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
+    __zero_count = 0
+
     
     def __init__(self, file: str, debug: bool=False) -> None:
         '''
         '''
-        self.byte_seq, self.bits_seq = self.__byte_seq(file, debug)
-        self.bit_stream = bitstring.BitArray(filename=file)
+        self.__bitstream = bitstring.BitArray(filename=file) 
+        self.__zero_seq(debug)
 
         
     def __byte_seq(self, file: str, debug: bool=False) -> tuple[list[int], list[int]]:
@@ -64,35 +67,29 @@ class GolombRice():
         m is a formula that will be rounded to the nearest base 2 exponential value
         m = -log(1+zero_prob)/log(zero_prob)
         '''
-        zero_prob = self.zero_prob()
-        return self.__next_power_of_two(-(math.log(1 + zero_prob) / math.log(zero_prob)))
+        p = self.zero_prob()
+        return self.__next_power_of_two(-math.log(1 + p) / math.log(p))
 
     
     def __next_power_of_two(self, x: float) -> int:
         return 1 if x == 0 else 2**math.ceil(math.log2(x))
 
-    
-    def zero_prob(self, debug: bool=False) -> float:
-        count = 0
-        for byte in self.byte_seq:
-            bits = bin(byte)[2:].rjust(8, '0')
-            count += bits.count('0')
-        if debug:
-            print(f'zero_count: {count}')
-            print(f'total_bits: {len(self.byte_seq) * 8}')
-            print(f'prob: {count/(len(self.byte_seq) * 8)}')
-        return count/(len(self.byte_seq) * 8)
 
-    def zero_seq(self):
+    def zero_prob(self) -> float:
+        return self.__zero_count / len(self.__bitstream.bin)
+    
+        
+    def __zero_seq(self, debug: bool):
         start = time.time()
-        b = self.bit_stream.bin
-        with open(self.__ZERO_SEQ_PATH, 'w', encoding='UTF8', ) as f:
+        b = self.__bitstream.bin
+        with open(self.__ZERO_SEQ_PATH, 'w+') as f:
             w = csv.writer(f)
             w.writerow(['number-of-zeros'])
             for s in b.split('1'):
+                count = len(s)
+                self.__zero_count += count # update zero count
                 w.writerow([len(s)])
         end = time.time()
         elapsed = end - start
-        with open('time.txt', 'w') as f:
-            f.write('zero-seq time: ' + str(elapsed) + ' seconds')
-            
+        if debug:
+            print(elapsed)
