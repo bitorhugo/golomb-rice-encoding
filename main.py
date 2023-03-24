@@ -22,10 +22,7 @@ def main():
     img = images.pop()
     
     gr = GolombRice(img, debug=False)
-    # TODO: refactor using bits and not bytes
-    # print(f'm: {gr.m()}')
-    # print (f'q: {gr.q(8, 2)}')
-    print(gr.zero_seq())
+    print(f'ZeroProb: {gr.zero_prob()}')
 
 
     
