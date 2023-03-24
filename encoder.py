@@ -1,11 +1,14 @@
-import math
+import math, bitstring, csv, time
 
 class GolombRice():
 
+    __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
+    
     def __init__(self, file: str, debug: bool=False) -> None:
         '''
         '''
         self.byte_seq, self.bits_seq = self.__byte_seq(file, debug)
+        self.bit_stream = bitstring.BitArray(filename=file)
 
         
     def __byte_seq(self, file: str, debug: bool=False) -> tuple[list[int], list[int]]:
@@ -20,12 +23,13 @@ class GolombRice():
                 bits = bin(byte)[2:].rjust(8, '0') # rjust will pad 0's to the left
                 seq_bits.append(bits)
                 if debug:
-                    print(f'byte: {byte}')
-                    print(f'bits: {bits}')
-                    print('-------------')
+                    # print(f'byte: {byte}')
+                    # print(f'bits: {bits}')
+                    # print('-------------')
                     i += 1
                     if i == 200:
                         break
+                    
                 b = f.read(1)
         return (seq, seq_bits)
             
@@ -78,3 +82,17 @@ class GolombRice():
             print(f'total_bits: {len(self.byte_seq) * 8}')
             print(f'prob: {count/(len(self.byte_seq) * 8)}')
         return count/(len(self.byte_seq) * 8)
+
+    def zero_seq(self):
+        start = time.time()
+        b = self.bit_stream.bin
+        with open(self.__ZERO_SEQ_PATH, 'w', encoding='UTF8', ) as f:
+            w = csv.writer(f)
+            w.writerow(['number-of-zeros'])
+            for s in b.split('1'):
+                w.writerow([len(s)])
+        end = time.time()
+        elapsed = end - start
+        with open('time.txt', 'w') as f:
+            f.write('zero-seq time: ' + str(elapsed) + ' seconds')
+            
