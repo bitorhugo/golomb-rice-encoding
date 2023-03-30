@@ -49,6 +49,9 @@ class GolombRice():
         pass
 
 
+    def r(self):
+        pass
+    
     def q(self, n: int, m: float) -> int:
         '''
         Calculates quoficient and returns it as unary
@@ -93,3 +96,5 @@ class GolombRice():
         elapsed = end - start
         if debug:
             print(elapsed)
+            
+# https://bitstring.readthedocs.io/en/stable/slicing.html
