@@ -21,7 +21,7 @@ def main():
     images = files['pic']
     img = images.pop()
 
-    gr = GolombRice(img, debug=True)
+    gr = GolombRice(img, debug=True, test=True)
     gr.encode(debug=True)
 
         

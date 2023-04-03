@@ -3,40 +3,21 @@ import os, math, bitstring, csv, time
 
 class GolombRice():
     
+
     __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
     __zero_count = 0
-    
-    def __init__(self, file: str, debug: bool=False) -> None:
-        '''
-        '''
-        self.__bitstream = bitstring.BitArray('0b000001001100010100000111010001')
-        # self.__bitstream = bitstring.BitArray(filename=file)
-        self.__zero_seq(debug)
-        
-        
-    def __byte_seq(self, file: str, debug: bool=False) -> tuple[list[int], list[int]]:
-        seq = []
-        seq_bits = []
-        with open(file, 'rb') as f:
-            b = f.read(1)
-            i = 0
-            while(b):
-                byte = ord(b)
-                seq.append(byte)
-                bits = bin(byte)[2:].rjust(8, '0') # rjust will pad 0's to the left
-                seq_bits.append(bits)
-                if debug:
-                    # print(f'byte: {byte}')
-                    # print(f'bits: {bits}')
-                    # print('-------------')
-                    i += 1
-                    if i == 200:
-                        break
-                    
-                b = f.read(1)
-        return (seq, seq_bits)
-            
 
+        
+    def __init__(self, file: str, debug: bool=False, test: bool=False) -> None:
+        '''
+        '''
+        if test:
+            self.__bitstream = bitstring.BitArray('0b000001001100010100000111010001')
+        else:
+            self.__bitstream = bitstring.BitArray(filename=file)
+        self.__zero_seq(debug)
+
+        
     def encode(self, debug: bool=False):
         '''
         Encodes input stream
@@ -51,21 +32,21 @@ class GolombRice():
             print (f'm:{m}')
         with open(self.__ZERO_SEQ_PATH) as f:
             reader = csv.reader(f)
-            # discard csb headers
-            reader.__next__()
-            n = int(reader.__next__().pop())
-            if debug:
-                print(f'n:{n}')
-            # third calculate q iteratively
-            q_int, q_unar = self.q(n, m) # q is a tuple containing its integer value and its unary representation
-            if debug:
-                print(f'q:{(q_int, q_unar)}')
-            # fourth calculate remainder with c bits
-            r = self.r(n, q_int, m, debug=True)
-            # lastly concat q and r
-            cod = str(q_unar) + str(r)
-            if (debug):
-                print(f'cod:{cod}')
+            next(reader) # discard csv headers
+            for row in reader:
+                n = int(row.pop())
+                if debug:
+                    print(f'n:{n}')
+                    # third calculate q iteratively
+                    q_int, q_unar = self.q(n, m) # q is a tuple containing its integer value and its unary representation
+                    if debug:
+                        print(f'q:{(q_int, q_unar)}')
+                        # fourth calculate remainder with c bits
+                        r = self.r(n, q_int, m, debug=True)
+                        # lastly concat q and r
+                        cod = str(q_unar) + str(r)
+                        if (debug):
+                            print(f'cod:{cod}')
 
                 
     def decode(self):
