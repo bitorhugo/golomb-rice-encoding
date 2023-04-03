@@ -20,15 +20,13 @@ def main():
     files = load('data/corpus-silesia/', debug=True)
     images = files['pic']
     img = images.pop()
-    
-    gr = GolombRice(img, debug=False)
-    print(f'ZeroProb: {gr.zero_prob()}')
 
+    gr = GolombRice(img, debug=True)
+    gr.encode(debug=True)
 
-    
+        
 if __name__ == '__main__':
     main()
 
 
 
-# https://bitstring.readthedocs.io/en/stable/slicing.html

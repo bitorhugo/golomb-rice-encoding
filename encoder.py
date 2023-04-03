@@ -5,12 +5,12 @@ class GolombRice():
     
     __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
     __zero_count = 0
-
     
     def __init__(self, file: str, debug: bool=False) -> None:
         '''
         '''
-        self.__bitstream = bitstring.BitArray(filename=file)
+        self.__bitstream = bitstring.BitArray('0b000001001100010100000111010001')
+        # self.__bitstream = bitstring.BitArray(filename=file)
         self.__zero_seq(debug)
         
         
@@ -42,30 +42,30 @@ class GolombRice():
         Encodes input stream
         '''
         # fist calculate p(0)
-        p = self.zero_prob()
+        p = self.p()
         if debug:
-            print(f'p={p}')
+            print(f'p:{p}')
         # second calculate m()
         m = self.m()
         if debug:
-            print (f'm={m}')
+            print (f'm:{m}')
         with open(self.__ZERO_SEQ_PATH) as f:
             reader = csv.reader(f)
             # discard csb headers
             reader.__next__()
             n = int(reader.__next__().pop())
             if debug:
-                print(f'n={n}')
+                print(f'n:{n}')
             # third calculate q iteratively
             q_int, q_unar = self.q(n, m) # q is a tuple containing its integer value and its unary representation
             if debug:
-                print(f'q={(q_int, q_unar)}')
+                print(f'q:{(q_int, q_unar)}')
             # fourth calculate remainder with c bits
             r = self.r(n, q_int, m, debug=True)
             # lastly concat q and r
             cod = str(q_unar) + str(r)
             if (debug):
-                print(f'cod={cod}')
+                print(f'cod:{cod}')
 
                 
     def decode(self):
@@ -91,7 +91,7 @@ class GolombRice():
         padding = len(r) - c
         r = r.rjust(padding, '0')
         if debug:
-            print(f'r={r}')
+            print(f'r:{r}')
         return int(r)
 
     
@@ -113,22 +113,26 @@ class GolombRice():
         m is a formula that will be rounded to the nearest base 2 exponential value
         m = -log(1+zero_prob)/log(zero_prob)
         '''
-        p = self.zero_prob()
+        p = self.p()
         return math.ceil(self.__next_power_of_two(-math.log(1 + p) / math.log(p)))
 
     
     def __next_power_of_two(self, x: float) -> int:
+        '''
+        '''
         return 1 if x == 0 else 2**math.ceil(math.log2(x))
 
 
-    def zero_prob(self) -> float:
+    def p(self) -> float:
+        '''
+        '''
+        print(f'zero:{self.__zero_count}')
         return self.__zero_count / len(self.__bitstream.bin)
 
-    def zero_count(self):
-        b = self.__bitstream.bin
-        pass
-        
+
     def __zero_seq(self, debug: bool):
+        '''
+        '''
         start = time.time()
         b = self.__bitstream.bin
         # check to see if file exists before computing sequence of zeros
@@ -136,8 +140,7 @@ class GolombRice():
             w = csv.writer(f)
             w.writerow(['number-of-zeros'])
             for s in b.split('1'):
-                count = len(s)
-                self.__zero_count += count # update zero count
+                self.__zero_count += len(s) # save zero count for future reference
                 w.writerow([len(s)])
         end = time.time()
         elapsed = end - start
