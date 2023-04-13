@@ -3,6 +3,7 @@
 import os, pprint
 from encoder import GolombRice
 
+
 def load(datapath: str, debug=False) -> dict[str, list[str]]:
     '''
     Retuns a list of all filename included in corpus sylesia
@@ -21,12 +22,9 @@ def main():
     images = files['pic']
     img = images.pop()
 
-    gr = GolombRice(img, debug=True, test=True)
-    gr.encode(debug=True)
+    gr = GolombRice(img, debug=False)
+    gr.encode(debug=False)
 
         
 if __name__ == '__main__':
     main()
-
-
-

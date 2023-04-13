@@ -1,4 +1,4 @@
-import os, math, bitstring, csv, time
+import math, bitstring, csv, time
 
 
 class GolombRice():
@@ -8,13 +8,13 @@ class GolombRice():
     __zero_count = 0
 
         
-    def __init__(self, file: str, debug: bool=False, test: bool=False) -> None:
+    def __init__(self, input_file: str, debug: bool=False, test: bool=False) -> None:
         '''
         '''
         if test:
-            self.__bitstream = bitstring.BitArray('0b000001001100010100000111010001')
+            self.__bitstream = bitstring.BitArray('0b0000000000000000001')
         else:
-            self.__bitstream = bitstring.BitArray(filename=file)
+            self.__bitstream = bitstring.BitArray(filename=input_file)
         self.__zero_seq(debug)
 
         
@@ -22,6 +22,7 @@ class GolombRice():
         '''
         Encodes input stream
         '''
+        start = time.time()
         # fist calculate p(0)
         p = self.p()
         if debug:
@@ -30,24 +31,26 @@ class GolombRice():
         m = self.m()
         if debug:
             print (f'm:{m}')
-        with open(self.__ZERO_SEQ_PATH) as f:
-            reader = csv.reader(f)
+        with open(self.__ZERO_SEQ_PATH) as f1, open('data/encodings/test', 'a+') as f2:
+            reader = csv.reader(f1)
             next(reader) # discard csv headers
             for row in reader:
                 n = int(row.pop())
                 if debug:
                     print(f'n:{n}')
-                    # third calculate q iteratively
-                    q_int, q_unar = self.q(n, m) # q is a tuple containing its integer value and its unary representation
-                    if debug:
-                        print(f'q:{(q_int, q_unar)}')
-                        # fourth calculate remainder with c bits
-                        r = self.r(n, q_int, m, debug=True)
-                        # lastly concat q and r
-                        cod = str(q_unar) + str(r)
-                        if (debug):
-                            print(f'cod:{cod}')
-
+                # third calculate q iteratively
+                q_int, q_unar = self.q(n, m) # q is a tuple containing its integer value and its unary representation
+                if debug:
+                    print(f'q:{(q_int, q_unar)}')
+                # fourth calculate remainder with c bits
+                r = self.r(n, q_int, m, debug=debug)
+                # lastly concat q and r
+                cod = str(q_unar) + str(r)
+                f2.write(cod)
+                # TODO: read and write once
+        end = time.time()
+        elapsed = end - start
+        print(elapsed)
                 
     def decode(self):
         '''
