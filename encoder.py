@@ -4,20 +4,17 @@ import math, bitstring, csv, time
 class GolombRice():
     
 
-    __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
+    # __ZERO_SEQ_PATH = 'data/helper/zero-seq.csv'
     __zero_count = 0
 
     zero_buffer = []
     encoding_buffer = []
         
-    def __init__(self, input_file: str, debug: bool=False, test: bool=False) -> None:
+    def __init__(self, input_file: str, debug: bool=False) -> None:
         '''
         '''
-        if test:
-            self.__bitstream = bitstring.BitArray('0b0000000000000000001')
-        else:
-            self.__bitstream = bitstring.BitArray(filename=input_file)
-        self.__zero_seq(debug)
+        self.__bitstream = bitstring.BitArray(filename=input_file)
+        self.__zero_seq()
 
         
     def encode(self, debug: bool=False):
@@ -47,13 +44,13 @@ class GolombRice():
             # fourth calculate remainder with c bits
             r = self.r(n, q_int, m, debug=debug)
             # lastly concat q and r
-            cod = str(q_unar) + str(r)
+            cod = str(q_unar) + r
             self.encoding_buffer.append(cod)
-                # f2.write(cod)
-                # TODO: read and write once
+
         end = time.time()
         elapsed = end - start
         print(f'Time:{int(elapsed)}s')
+        
         with open('data/encodings/test', 'w+') as f:
             f.writelines(self.encoding_buffer)
 
@@ -72,17 +69,23 @@ class GolombRice():
         return math.ceil(math.log2(m))
 
         
-    def r(self, n: int, q: int, m: int, debug: bool=False) -> int:
+    def r(self, n: int, q: int, m: int, debug: bool=False) -> str:
         '''
         Calculates remainder and returns it in 'c' amount of bits
         '''
-        r = str(n - (q * m))
+        r = n - q * m
+        r_bin = bin(r)[2:]
+        # print(f'r:{r_bin}')
         c = self.c(m)
-        padding = len(r) - c
-        r = r.rjust(padding, '0')
-        if debug:
-            print(f'r:{r}')
-        return int(r)
+        # print(f'c:{c}')
+        padding = c - len(r_bin)
+        # print (padding)
+
+        if padding > 0:
+            r_bin = r_bin.zfill(c)
+            # print (r_bin)
+
+        return r_bin
 
     
     def q(self, n: int, m: float) -> tuple[int, str]:
@@ -119,13 +122,12 @@ class GolombRice():
         return self.__zero_count / len(self.__bitstream.bin)
 
 
-    def __zero_seq(self, debug: bool):
+    def __zero_seq(self):
         '''
-        Calculate 
+        Calculates sequence of zeros 
         '''
-        # TODO: write to local buffer
-        start = time.time()
         b = self.__bitstream.bin
+        start = time.time() # set timer
         for s in b.split('1'):
             self.__zero_count += len(s) # save zero count for future reference
             self.zero_buffer.append(len(s))
@@ -138,7 +140,6 @@ class GolombRice():
         #         w.writerow([len(s)])
         end = time.time()
         elapsed = end - start
-        if debug:
-            print(f'elapsed:{elapsed}')
+        print(f'zero-seq-time:{elapsed}')
             
 # https://bitstring.readthedocs.io/en/stable/slicing.html

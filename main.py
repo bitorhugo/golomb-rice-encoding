@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
+import math
 import os, pprint
+import cProfile, re
 from encoder import GolombRice
 
 
@@ -24,7 +26,8 @@ def main():
 
     gr = GolombRice(img, debug=False)
     gr.encode(debug=False)
-
+    
         
 if __name__ == '__main__':
+    # cProfile.run('main()')
     main()
