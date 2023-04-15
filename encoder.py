@@ -7,7 +7,8 @@ class GolombRice():
     encoding_path: str
     decoding_path: str
 
-    c : int
+    c: int
+    m: int
     output_buffer:  list[str]
 
     def __init__(self, input_path :str) -> None:
@@ -38,6 +39,7 @@ class GolombRice():
             print(f'p(0): {p}')
         # calculate m
         m = self.__m(p)
+        self.m = m
         if debug:
             print (f'm: {m}')
 
@@ -89,13 +91,15 @@ class GolombRice():
 
         size = len(encodings)
         start = 0
-        print(size)
+        symbols = []
         while True:
             index = encodings.find('0', start)
 
-            q = encodings[start:index + 1]
+            # 'q' will be the number of ones until a zero is found (unary-code)
+            q = index - start
             print(f'q:{q}')
 
+            # 'r' is the next 'c' chars
             r = encodings[index+1 : index+1+self.c]
             print(f'r:{r}')
 
@@ -105,11 +109,18 @@ class GolombRice():
             start = index
             print(f'start:{start}')
 
+            # compute symbol from q and r
+            symbol = int(q) * self.m + int(r)
+            
+            symbols.append(symbol)
+            
             if index >= size:
-                exit(0)
-
-
-
+                print(symbols)
+                break;
+            
+            
+            
+        
     def __c(self, m: int) -> int:
         '''
         Calculates the amount of bits necessary to represent r
