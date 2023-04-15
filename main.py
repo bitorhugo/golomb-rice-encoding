@@ -24,10 +24,11 @@ def main():
     images = files['pic']
     img = images.pop()
 
-    gr = GolombRice(img, debug=False)
-    gr.encode(debug=False)
+    gr = GolombRice(img)
+    gr.encode(debug=True)
+    gr.decode()
+
     
-        
 if __name__ == '__main__':
     # cProfile.run('main()')
     main()
