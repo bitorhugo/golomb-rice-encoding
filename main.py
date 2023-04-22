@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import math
 import os, pprint
@@ -25,10 +25,14 @@ def main():
     img = images.pop()
 
     gr = GolombRice(img)
-    gr.encode(debug=True)
-    gr.decode()
+    gr.encode(debug=False)
+    # gr.decode()
 
     
 if __name__ == '__main__':
     # cProfile.run('main()')
     main()
+    
+# distribuicao geometrica (probabilidade de simbolos com menor valr inteiro e maior)
+# 
+# 

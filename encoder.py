@@ -1,5 +1,5 @@
 import math, bitstring, time
-
+from functools import reduce
 
 class GolombRice():
 
@@ -9,7 +9,7 @@ class GolombRice():
 
     c: int
     m: int
-    output_buffer:  list[str]
+    output_buffer: list[str]
 
     def __init__(self, input_path :str) -> None:
         self.input_path = input_path
@@ -75,11 +75,33 @@ class GolombRice():
 
         if debug:
             print(self.output_buffer)
-        # write encoded output to file
-        with open('data/encodings/test', 'w+') as f:
-            f.writelines(self.output_buffer)
 
+        # write encoded output to file
+        with open('data/encodings/test', 'wb+') as f:
+            # join output buffer to single string
+            bits = ''.join(self.output_buffer)
+
+            # divide string into bytes
+            substring_list = [bits[i:i+8] for i in range(0, len(bits), 8)]
+
+            # pad last byte
+            if len(substring_list[len(substring_list) - 1]) != 8:
+                substring_list[len(substring_list) - 1] = substring_list[len(substring_list) - 1].ljust(8, '0')
+
+            if debug:
+                print(substring_list)
                 
+            # transform string to bytes
+            bytes_list = [int(i, 2).to_bytes(1, byteorder='big') for i in substring_list]
+            if debug:
+                print(bytes_list)
+                
+            f.writelines(bytes_list)
+            
+
+
+
+            
     def decode(self, debug=False):
         '''
         Decodes output stream
@@ -118,7 +140,7 @@ class GolombRice():
                 print(symbols)
                 break;
             
-            
+        
             
         
     def __c(self, m: int) -> int:
