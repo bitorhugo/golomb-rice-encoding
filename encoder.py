@@ -10,6 +10,7 @@ class GolombRice():
     c: int
     m: int
     output_buffer: list[str]
+    aligned_bits: int
 
     def __init__(self, input_path :str) -> None:
         self.input_path = input_path
@@ -84,18 +85,21 @@ class GolombRice():
             # divide string into bytes
             substring_list = [bits[i:i+8] for i in range(0, len(bits), 8)]
 
-            # pad last byte
+            # pad last byte and save number of last aligned bits 
+            self.aligned_bits = 8 - len(substring_list[len(substring_list) - 1])
             if len(substring_list[len(substring_list) - 1]) != 8:
                 substring_list[len(substring_list) - 1] = substring_list[len(substring_list) - 1].ljust(8, '0')
 
             if debug:
+                print(f'aligned: {self.aligned_bits}')
                 print(substring_list)
                 
             # transform string to bytes
             bytes_list = [int(i, 2).to_bytes(1, byteorder='big') for i in substring_list]
             if debug:
                 print(bytes_list)
-                
+
+            # write to file
             f.writelines(bytes_list)
             
 
@@ -106,6 +110,7 @@ class GolombRice():
         '''
         Decodes output stream
         '''
+        # TODO: on reading bytes from file, eliminate last aligned bits from the sequence
         encodings = []
         # read encodings from file
         with open (self.encoding_path) as f:
