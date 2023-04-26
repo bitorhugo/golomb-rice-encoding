@@ -1,5 +1,4 @@
 import math, bitstring, time
-from functools import reduce
 
 class GolombRice():
 
@@ -10,7 +9,7 @@ class GolombRice():
     c: int
     m: int
     output_buffer: list[str]
-    aligned_bits: int
+    bits_to_align_byte: int
 
     def __init__(self, input_path :str) -> None:
         self.input_path = input_path
@@ -86,12 +85,12 @@ class GolombRice():
             substring_list = [bits[i:i+8] for i in range(0, len(bits), 8)]
 
             # pad last byte and save number of last aligned bits 
-            self.aligned_bits = 8 - len(substring_list[len(substring_list) - 1])
+            self.bits_to_align_byte = 8 - len(substring_list[len(substring_list) - 1])
             if len(substring_list[len(substring_list) - 1]) != 8:
                 substring_list[len(substring_list) - 1] = substring_list[len(substring_list) - 1].ljust(8, '0')
 
             if debug:
-                print(f'aligned: {self.aligned_bits}')
+                print(f'aligned: {self.bits_to_align_byte}')
                 print(substring_list)
                 
             # transform string to bytes
@@ -103,38 +102,34 @@ class GolombRice():
             f.writelines(bytes_list)
             
 
-
-
-            
     def decode(self, debug=False):
         '''
         Decodes output stream
         '''
-        # TODO: on reading bytes from file, eliminate last aligned bits from the sequence
-        encodings = []
-        # read encodings from file
-        with open (self.encoding_path) as f:
-            encodings = f.read()
+        bitstream = bitstring.BitArray(filename=self.encoding_path).b
+        
+        # remove last bits used to align byte
+        bits = bitstream[:len(bitstream) - self.bits_to_align_byte]
 
-        size = len(encodings)
+        size = len(bits)
         start = 0
         symbols = []
         while True:
-            index = encodings.find('0', start)
+            index = bits.find('0', start)
 
             # 'q' will be the number of ones until a zero is found (unary-code)
             q = index - start
-            print(f'q:{q}')
+            # print(f'q:{q}')
 
             # 'r' is the next 'c' chars
-            r = encodings[index+1 : index+1+self.c]
-            print(f'r:{r}')
+            r = bits[index+1 : index+1+self.c]
+            # print(f'r:{r}')
 
             index = index + self.c + 1
-            print(f'index:{index}')
+            # print(f'index:{index}')
 
             start = index
-            print(f'start:{start}')
+            # print(f'start:{start}')
 
             # compute symbol from q and r
             symbol = int(q) * self.m + int(r)
@@ -142,9 +137,9 @@ class GolombRice():
             symbols.append(symbol)
             
             if index >= size:
-                print(symbols)
+                print(f'symbol-> {symbols}')
                 break;
-            
+        
         
             
         
