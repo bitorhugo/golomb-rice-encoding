@@ -3,7 +3,7 @@
 import math
 import os, pprint
 import cProfile, re
-from encoder import GolombRice
+from golombrice import GolombRice
 
 
 def load(datapath: str, debug=False) -> dict[str, list[str]]:
@@ -26,9 +26,8 @@ def main():
 
     gr = GolombRice(img)
     gr.encode(debug=True)
-    # gr.decode()
+    gr.decode()
 
-    
 if __name__ == '__main__':
     # cProfile.run('main()')
     main()
