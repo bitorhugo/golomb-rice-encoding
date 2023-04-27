@@ -1,4 +1,4 @@
-import math, bitstring, time
+import math, bitstring, time, struct
 
 class GolombRice():
 
@@ -78,6 +78,13 @@ class GolombRice():
 
         # write encoded output to file
         with open('data/encodings/test', 'wb+') as f:
+            # first write headers to file
+            # header contains values of 'm' and 'c'
+            bin_m = self.m.to_bytes(1, byteorder='big')
+            bin_c = self.c.to_bytes(1, byteorder='big')
+            f.write(bin_m)
+            f.write(bin_c)
+            
             # join output buffer to single string
             bits = ''.join(self.output_buffer)
 
@@ -107,10 +114,12 @@ class GolombRice():
         Decodes output stream
         '''
         bitstream = bitstring.BitArray(filename=self.encoding_path).b
-        
         # remove last bits used to align byte
         bits = bitstream[:len(bitstream) - self.bits_to_align_byte]
 
+        print(f'm:{int(bits[:8], 2)}')
+        print(f'c:{int(bits[8:16], 2)}')
+        
         size = len(bits)
         start = 0
         symbols = []
@@ -137,9 +146,9 @@ class GolombRice():
             symbols.append(symbol)
             
             if index >= size:
-                print(f'symbol-> {symbols}')
+                if debug:
+                    print(symbols)
                 break;
-        
         
             
         
