@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
-import math
 import os, pprint
 import cProfile, re
+
+import bitstring
 from golombrice import GolombRice
 
 
@@ -21,17 +22,33 @@ def load(datapath: str, debug=False) -> dict[str, list[str]]:
     
 def main():
     files = load('data/corpus-silesia/', debug=True)
-    images = files['pic']
-    img = images.pop()
+    directory = files['pic']
+    f = directory.pop()
 
-    gr = GolombRice(img)
-    gr.encode(debug=True)
-    gr.decode()
+    debug = False
+    gr = GolombRice()
+    
+    enc = gr.encode(file = f, debug=debug)
+    gr.decode(enc, debug=debug)
+
 
 if __name__ == '__main__':
     # cProfile.run('main()')
     main()
+
+
+
+
+
     
 # distribuicao geometrica (probabilidade de simbolos com menor valr inteiro e maior)
-# 
-# 
+
+# 9970564
+# 6154730
+# 12833709
+
+# 33553454
+# 26170561 
+# 68299882
+
+

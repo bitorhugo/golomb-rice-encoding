@@ -1,4 +1,4 @@
-import math, bitstring, time, struct
+import math, bitstring, time, struct, os 
 
 class GolombRice():
 
@@ -9,24 +9,38 @@ class GolombRice():
     c: int
     m: int
     output_buffer: list[str]
-    bits_to_align_byte: int
 
-    def __init__(self, input_path :str) -> None:
-        self.input_path = input_path
-        self.encoding_path = 'data/encodings/test'
-        self.decoding_path = 'data/decodings/test'
-        self.output_buffer = []
-        
-    def encode(self, debug: bool=False):
+
+    def __init__(self) -> None:
+        pass
+
+
+    def enc_path(self, filename: str) -> str:
+        child: str = filename.split('/').pop()
+        return 'data/encodings/' + child + '.enc'
+
+
+    def dec_path(self, filename: str) -> str:
+        child: str = filename.split('/').pop()
+        return 'data/decodings/' + child + '.dec'       
+
+    
+    def encode(self, file: str, debug: bool=False) -> str:
         '''
         Encodes input stream
+        @Param file path of file to encode
+        @Param debug debug prints
+        @Return file path of encoded file
         '''
         # transform input to bit array
         if debug:
-            bitstream = bitstring.BitArray('0b000001001100010100000111010001')
+            bitstream = bitstring.BitArray(bin='000001001100010100000111010001')
         else:
-            bitstream = bitstring.BitArray(filename=self.input_path)
+            bitstream = bitstring.BitArray(filename=file)
 
+        # delcare output buffer
+        self.output_buffer = []
+            
         # represent input as a sequence of zeros
         symbol_buffer, zero_count = self.__symbol_seq(bitstream)
 
@@ -40,6 +54,7 @@ class GolombRice():
         # calculate m
         m = self.__m(p)
         self.m = m
+        print(m)
         if debug:
             print (f'm: {m}')
 
@@ -77,80 +92,100 @@ class GolombRice():
             print(self.output_buffer)
 
         # write encoded output to file
-        with open('data/encodings/test', 'wb+') as f:
-            # first write headers to file
-            # header contains values of 'm' and 'c'
-            bin_m = self.m.to_bytes(1, byteorder='big')
-            bin_c = self.c.to_bytes(1, byteorder='big')
-            f.write(bin_m)
-            f.write(bin_c)
+        enc_path = self.enc_path(file)
+        with open(enc_path, 'wb+') as f:
             
             # join output buffer to single string
             bits = ''.join(self.output_buffer)
+            
+            alignment_bits = 0
+            while len(bits) % 8 != 0:
+                bits += '0'
+                alignment_bits += 1
 
-            # divide string into bytes
-            substring_list = [bits[i:i+8] for i in range(0, len(bits), 8)]
-
-            # pad last byte and save number of last aligned bits 
-            self.bits_to_align_byte = 8 - len(substring_list[len(substring_list) - 1])
-            if len(substring_list[len(substring_list) - 1]) != 8:
-                substring_list[len(substring_list) - 1] = substring_list[len(substring_list) - 1].ljust(8, '0')
-
-            if debug:
-                print(f'aligned: {self.bits_to_align_byte}')
-                print(substring_list)
-                
-            # transform string to bytes
-            bytes_list = [int(i, 2).to_bytes(1, byteorder='big') for i in substring_list]
-            if debug:
-                print(bytes_list)
-
-            # write to file
-            f.writelines(bytes_list)
+            # header contains values of 'alignment_bits', 'm' and 'c'
+            bin_alignmet_bits = alignment_bits.to_bytes(1, byteorder='big')
+            bin_m = self.m.to_bytes(1, byteorder='big')
+            bin_c = self.c.to_bytes(1, byteorder='big')
+            
+            f.write(bin_alignmet_bits)
+            f.write(bin_m)
+            f.write(bin_c)
+            f.write(bitstring.BitArray(bin=bits).bytes)
+            
+        return enc_path
             
 
-    def decode(self, debug=False):
+    def decode(self, filename: str, debug=False):
         '''
         Decodes output stream
         '''
-        bitstream = bitstring.BitArray(filename=self.encoding_path).b
-        # remove last bits used to align byte
-        bits = bitstream[:len(bitstream) - self.bits_to_align_byte]
-
-        print(f'm:{int(bits[:8], 2)}')
-        print(f'c:{int(bits[8:16], 2)}')
+        print('-------------------------------------')
+        # start timer
+        start = time.time()
         
+        bitstream = bitstring.BitArray(filename=filename).bin
+        
+        alignemt_bits = int(bitstream[:8], 2)
+        m = int(bitstream[8:16], 2)
+        c = int(bitstream[16:24], 2)
+        bits = bitstream[24:len(bitstream) - alignemt_bits]
+
+        if debug:
+            print(f'bits: {bits}')
+            print(f'alignement: {alignemt_bits}')
+            print(f'm: {m}')
+            print(f'c: {c}')
+
         size = len(bits)
         start = 0
         symbols = []
         while True:
             index = bits.find('0', start)
-
+            
             # 'q' will be the number of ones until a zero is found (unary-code)
             q = index - start
             # print(f'q:{q}')
 
-            # 'r' is the next 'c' chars
-            r = bits[index+1 : index+1+self.c]
+            # 'r' is the next 'c' bits
+            r = bits[ index + 1 : index + 1 + c ]
             # print(f'r:{r}')
 
-            index = index + self.c + 1
+            # relocate index
+            index = index + c + 1
             # print(f'index:{index}')
 
             start = index
             # print(f'start:{start}')
 
             # compute symbol from q and r
-            symbol = int(q) * self.m + int(r)
+            symbol = int(q * m + int(r) - (math.pow(2, c) - m))
             
             symbols.append(symbol)
             
             if index >= size:
-                if debug:
-                    print(symbols)
-                break;
-        
+                break
+
+        seq = ''
+        i = 0
+        for symbol in symbols:
+            seq += '0' * symbol
+            if (i != len(symbols) - 1):
+                seq += '1'
+            i += 1
             
+        # no alignemt is needed for decoding sice it must be the exact same file as pre-encoded
+
+        # terminate timer
+        end = time.time()
+        elapsed = end - start
+        print(f'Decoding-Time: ~{int(elapsed)} seconds')
+        
+        dec_path = self.dec_path(filename)
+        with open(dec_path, 'wb+') as f:
+            f.write(bitstring.BitArray(bin=seq).bytes)
+
+
         
     def __c(self, m: int) -> int:
         '''
@@ -220,8 +255,5 @@ class GolombRice():
 
         return buffer, count
 
-
-
-            
 # https://bitstring.readthedocs.io/en/stable/slicing.html
 # https://michaeldipperstein.github.io/rice.html
