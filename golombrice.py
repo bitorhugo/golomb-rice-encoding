@@ -8,8 +8,6 @@ class GolombRice():
 
     c: int
     m: int
-    output_buffer: list[str]
-
 
     def __init__(self) -> None:
         pass
@@ -36,10 +34,10 @@ class GolombRice():
         if debug:
             bitstream = bitstring.BitArray(bin='000001001100010100000111010001')
         else:
-            bitstream = bitstring.BitArray(filename=file)
+            bitstream = bitstring.BitArray(filename=file).bin
 
         # delcare output buffer
-        self.output_buffer = []
+        output_buffer = []
             
         # represent input as a sequence of zeros
         symbol_buffer, zero_count = self.__symbol_seq(bitstream)
@@ -51,37 +49,39 @@ class GolombRice():
         p = self.__p(bitstream, zero_count)
         if debug:
             print(f'p(0): {p}')
+            
         # calculate m
         m = self.__m(p)
-        self.m = m
-        print(m)
         if debug:
             print (f'm: {m}')
 
         # calculate c, also named as 'k'
-        self.c = self.__c(m)
+        c = self.__c(m)
         if debug:
-            print(f'c: {self.c}')
+            print(f'c: {c}')
 
         for symbol in symbol_buffer:
             if debug:
                 print(f'symbol: {symbol}')
                 
             # compute quotient 'q'
-            q_value, q_unary = self.__q(symbol, self.c) # q is a tuple containing its integer value and its unary representation
+            q_value, q_unary = self.__q(symbol, c) # q is a tuple containing its integer value and its unary representation
             if debug:
                 print(f'q: {(q_value, q_unary)}')
-                
-            # compute remainder and represent it in 'c' bits
-            r = self.r(symbol, q_value, m, self.c)
-            if debug:
-                print(f'r: {r}')
 
-            # represent final encoding as a concatenation of 'q' and 'r'
-            cod = str(q_unary) + r
+            if c > 0:
+                # compute remainder and represent it in 'c' bits
+                r = self.r(symbol, q_value, m, c)
+                if debug:
+                    print(f'r: {r}')
+
+                # represent final encoding as a concatenation of 'q' and 'r'
+                cod = str(q_unary) + r
+            else:
+                cod = str(q_unary)
 
             # append to output buffer
-            self.output_buffer.append(cod)
+            output_buffer.append(cod)
 
         # terminate timer
         end = time.time()
@@ -89,14 +89,14 @@ class GolombRice():
         print(f'Encoding-Time: ~{int(elapsed)} seconds')
 
         if debug:
-            print(self.output_buffer)
+            print(output_buffer)
 
         # write encoded output to file
         enc_path = self.enc_path(file)
         with open(enc_path, 'wb+') as f:
             
             # join output buffer to single string
-            bits = ''.join(self.output_buffer)
+            bits = ''.join(output_buffer)
             
             alignment_bits = 0
             while len(bits) % 8 != 0:
@@ -105,8 +105,8 @@ class GolombRice():
 
             # header contains values of 'alignment_bits', 'm' and 'c'
             bin_alignmet_bits = alignment_bits.to_bytes(1, byteorder='big')
-            bin_m = self.m.to_bytes(1, byteorder='big')
-            bin_c = self.c.to_bytes(1, byteorder='big')
+            bin_m = m.to_bytes(1, byteorder='big')
+            bin_c = c.to_bytes(1, byteorder='big')
             
             f.write(bin_alignmet_bits)
             f.write(bin_m)
@@ -120,7 +120,7 @@ class GolombRice():
         '''
         Decodes output stream
         '''
-        print('-------------------------------------')
+        print(f'------dec -> {filename}------')
         # start timer
         start = time.time()
         
@@ -148,8 +148,8 @@ class GolombRice():
             # print(f'q:{q}')
 
             # 'r' is the next 'c' bits
-            r = bits[ index + 1 : index + 1 + c ]
-            # print(f'r:{r}')
+            r = bits[index + 1:index + 1 + c]
+            #print(f'r:{r}')
 
             # relocate index
             index = index + c + 1
@@ -159,7 +159,10 @@ class GolombRice():
             # print(f'start:{start}')
 
             # compute symbol from q and r
-            symbol = int(q * m + int(r) - (math.pow(2, c) - m))
+            if r:
+                symbol = int(q * m + int(r, 2) - (math.pow(2, c) - m))
+            else:
+                symbol = int(q * m - (math.pow(2, c) - m))
             
             symbols.append(symbol)
             
@@ -226,7 +229,7 @@ class GolombRice():
         m is a formula that will be rounded to the nearest base 2 exponential value
         m = -log(1+zero_prob)/log(zero_prob)
         '''
-        return math.ceil(self.__next_power_of_two(-math.log(1 + p) / math.log(p)))
+        return math.ceil(self.__next_power_of_two(-(math.log(1 + p) / math.log(p))))
 
     
     def __next_power_of_two(self, x: float) -> int:
@@ -235,17 +238,17 @@ class GolombRice():
         return 1 if x == 0 else 2**math.ceil(math.log2(x))
 
 
-    def __p(self, bitstream: bitstring.BitArray, zero_count: int) -> float:
+    def __p(self, bitstream: bitstring.BitArray.bin, zero_count: int) -> float:
         '''
         '''
-        return zero_count / len(bitstream.bin)
+        return zero_count / len(bitstream)
 
 
-    def __symbol_seq(self, bitstream: bitstring.BitArray) -> tuple[list[int], int]:
+    def __symbol_seq(self, bitstream: bitstring.BitArray.bin) -> tuple[list[int], int]:
         '''
         Calculates sequence of zeros 
         '''
-        b = bitstream.bin
+        b = bitstream
         buffer = []
         count = 0
 

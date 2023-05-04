@@ -3,7 +3,6 @@
 import os, pprint
 import cProfile, re
 
-import bitstring
 from golombrice import GolombRice
 
 
@@ -28,16 +27,13 @@ def main():
     debug = False
     gr = GolombRice()
     
-    enc = gr.encode(file = f, debug=debug)
+    enc = gr.encode(file=f, debug=debug)
     gr.decode(enc, debug=debug)
 
 
 if __name__ == '__main__':
     # cProfile.run('main()')
     main()
-
-
-
 
 
     
