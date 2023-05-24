@@ -22,6 +22,15 @@ class GolombRice():
         child: str = filename.split('/').pop()
         return 'data/decodings/' + child + '.dec'       
 
+
+    def basic_dec_path(self, filename: str) -> str:
+        name: str = filename.split('.')[0] + '.dec'
+        return name
+    
+
+    def basic_enc_path(self, filename: str) -> str:
+        return filename + '.enc'
+    
     
     def encode(self, file: str, debug: bool=False) -> str:
         '''
@@ -32,7 +41,7 @@ class GolombRice():
         '''
         # transform input to bit array
         if debug:
-            bitstream = bitstring.BitArray(bin='000001001100010100000111010001')
+            bitstream = bitstring.BitArray(bin='000001001100010100000111010001').bin
         else:
             bitstream = bitstring.BitArray(filename=file).bin
 
@@ -47,8 +56,8 @@ class GolombRice():
 
         # calculate probability of zeros
         p = self.__p(bitstream, zero_count)
-        if debug:
-            print(f'p(0): {p}')
+
+        print(f'p(0): {p}')
             
         # calculate m
         m = self.__m(p)
@@ -92,9 +101,8 @@ class GolombRice():
             print(output_buffer)
 
         # write encoded output to file
-        enc_path = self.enc_path(file)
+        enc_path = self.basic_enc_path(file)
         with open(enc_path, 'wb+') as f:
-            
             # join output buffer to single string
             bits = ''.join(output_buffer)
             
@@ -184,7 +192,7 @@ class GolombRice():
         elapsed = end - start
         print(f'Decoding-Time: ~{int(elapsed)} seconds')
         
-        dec_path = self.dec_path(filename)
+        dec_path = self.basic_dec_path(filename)
         with open(dec_path, 'wb+') as f:
             f.write(bitstring.BitArray(bin=seq).bytes)
 
@@ -259,4 +267,4 @@ class GolombRice():
         return buffer, count
 
 # https://bitstring.readthedocs.io/en/stable/slicing.html
-# https://michaeldipperstein.github.io/rice.html
+# https://michaeldipperstein.github.io/rice.html 
