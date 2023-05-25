@@ -41,7 +41,7 @@ class GolombRice():
         '''
         # transform input to bit array
         if debug:
-            bitstream = bitstring.BitArray(bin='000001001100010100000111010001').bin
+            bitstream = bitstring.BitArray(bin='11100010100000001001110001').bin
         else:
             bitstream = bitstring.BitArray(filename=file).bin
 
@@ -99,6 +99,7 @@ class GolombRice():
 
         if debug:
             print(output_buffer)
+            exit(1)
 
         # write encoded output to file
         enc_path = self.basic_enc_path(file)
